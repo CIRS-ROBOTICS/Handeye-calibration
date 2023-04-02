@@ -15,7 +15,9 @@ setup(
         'pymodbus',
         'math3d',
         'protobuf',
-        'ur-rtde',
+        'ur-rtde==1.4.5',
+        'pyrealsense2',
+        'open3d'
     ],
     entry_points={
         'console_scripts':[
@@ -23,8 +25,8 @@ setup(
         ]
     },
     # Meta data
-    author="Hao, Peng and Wei, Junhang",
-    desciption="This is for Robot (UR5)",
-    keywords="robot_envs ur5",
+    author="HaoPeng, WeiJunhang and CaoXiaoge ",
+    desciption="This is for UR Robot ",
+    keywords="robot_envs ur robot",
     url=""
 )
