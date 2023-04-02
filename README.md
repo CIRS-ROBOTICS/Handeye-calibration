@@ -17,32 +17,35 @@ This implementation requires the following dependencies (tested on Ubuntu 16.04 
 We provide a simple calibration script by using the checkerboard to estimate camera extrinsics with respect to robot base coordinates and gripper coordinates.
 
 ### Eye to hand calibration
-If you need to determine the transformation matrix between the camera coordinate system and the robot base coordinate system，you can run the following command:
+
+* If you need to determine the transformation matrix between the camera coordinate system and the robot base coordinate system，you can run the following command:
 
     ```shell
     python calibr_eye_to_hand.py [--use_recorded_data]
     ```
 
---use_recorded_data indicates the code only use the previous calibration data for calibration.
+'--use_recorded_data' indicates the code only use the previous calibration data for calibration.
 
 ### Eye in hand calibration
-Before calibration, we need to drag the robot to determine the position of calibration board in the base coordinate system. Then we collect the calibration data for obtaining the extrinsic of camera. The whole process can be realized by executing the following command:
+Before calibration, we need to drag the robot to determine the position of calibration board in the base coordinate system. Then we collect the calibration data for obtaining the extrinsic of camera. 
+
+* The whole process can be realized by executing the following command:
 
     ```shell
     python calibr_eye_in_hand.py [--use_recorded_data]
     ```
---use_recorded_data indicates the code only use the previous calibration data for calibration.
+'--use_recorded_data' indicates the code only use the previous calibration data for calibration.
 
 ## Test Calibration Results
 We use the aruco board and opencv for getting the pose of the aruco board and we make the robot grasp the board. The following command:
 
--Eye to hand
+* Eye to hand
 
     ```shell
     python calibr_test_eyetohand.py
     ```
 
--Eye in hand
+* Eye in hand
 
     ```shell
     python calibr_test_eyeinhand.py
