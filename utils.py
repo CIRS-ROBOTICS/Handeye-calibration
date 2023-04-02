@@ -38,7 +38,7 @@ def init_robot(robot_ip, camera_model):
 
     # initialize the gripper
     gripper = robotiq_gripper.RobotiqGripper() # Creating gripper
-    gripper.connect('192.168.1.109', 63352)    # Connecting to gripper
+    gripper.connect(robot_ip, 63352)    # Connecting to gripper
     gripper.activate()                         
 
     # set up camera
