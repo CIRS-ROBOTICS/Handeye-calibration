@@ -209,7 +209,8 @@ trans_init = np.asarray([[1, 0, 0, 0.02],
                          [0, 1, 0, 0.08],
                          [0, 0, 1, 0.09],
                          [0.0, 0.0, 0.0, 1.0]]) # need to change
-# Trans_init is to make the source translate and rotate so that it coincides with the target as much as possible
+# Trans_init is T_source2target i.e. the representation of source coordinates in target coordinates
+# In other words, the coordinate system {target} can be translated and rotated to obtain the coordinate system {source}
 draw_registration_result(pcd_rot, pcd_cam, trans_init) 
 
 evaluation = o3d.pipelines.registration.evaluate_registration(pcd_rot, pcd_cam, threshold, trans_init)
