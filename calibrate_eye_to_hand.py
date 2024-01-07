@@ -10,16 +10,19 @@ import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--robot_ip', type=str, default='192.168.1.109', help='Robot ip address')
+    parser.add_argument('--robot_ip', type=str, default='10.5.13.66', help='Robot ip address')
     parser.add_argument('--calib_grid_step', type=float, default=0.05, help='Calibration grid step')
-    parser.add_argument('--workspace', type=float, nargs=6, default=[-0.2, 0.1, -0.6, -0.5, 0.3, 0.4], 
+    parser.add_argument('--workspace', type=float, nargs=6, default=[-0.3, -0.14, -0.68, -0.6, 0.245, 0.48], 
                         help='Workspace range, [xmin, xmax, ymin, ymax, zmin, zmax]')
     parser.add_argument('--home_joint_position', type=float, nargs=6, 
-                        default=[-88.89, -91.64, -105.43, -77.63, 88.43, 360],
+                        default=[47.46, -117.32, 98.57, 289.03, -84.55, 256.31],
                         help='Robot arm joint angles at home pose, in degrees')
     parser.add_argument('--use_recorded_data', action='store_true', default=False, help='Use data collected before')
     parser.add_argument('--camera', type=str, default='default', choices=['L515', 'SR300', 'default'], help='Camera model')
     parser.add_argument('--checkboard_size', type=int, default=5, help='Calibration size')
+    parser.add_argument('--checkerboard_offset_from_tool', type=float, nargs=3,
+                        default=[0, 0, 0.011],
+                        help='Offset from the center of the gripper to the center of the checkerboard')
     args = parser.parse_args()
     args.workspace = np.array(args.workspace).reshape(3, 2)
     args.home_joint_position = [np.deg2rad(x) for x in args.home_joint_position]
@@ -56,7 +59,7 @@ if __name__ == '__main__':
         rtde_c.moveJ(home_joint_config, vel, acc)
 
         # Make robot gripper point upwards ***
-        joint_radian = [-88.89, -122.69, -112.04, 55.24, 88.45, 359.83]
+        joint_radian = [47.44, -101.72, 117.97, 169.90, -79.95, 261.45]
         joint_radian = tuple([np.deg2rad(x) for x in joint_radian])
         rtde_c.moveJ(joint_radian, vel, acc)
 
@@ -122,6 +125,7 @@ if __name__ == '__main__':
                     
                     cur_state = rtde_r.getActualTCPPose()
                     tool_position = np.array(cur_state[:3]).reshape(1,3)
+                    tool_position = tool_position + args.checkerboard_offset_from_tool
 
                     measured_pts.append(tool_position)  # The position of the calibration board in the base coordinate system
                     observed_pix.append(checkerboard_pix)   # center pixel position of the calibration board
@@ -178,9 +182,9 @@ pcd_rot.points = o3d.utility.Vector3dVector(points_base)
 pcd_rot.paint_uniform_color([0, 0, 1.0])
 
 threshold = 0.02
-trans_init = np.asarray([[1, 0, 0, 0.06],
-                         [0, -1, 0, -0.45],
-                         [0, 0, -1, 0.85],
+trans_init = np.asarray([[1, 0, 0, 0.38],
+                         [0, -1, 0, -0.65],
+                         [0, 0, -1, 0.95],
                          [0.0, 0.0, 0.0, 1.0]]) # need to change 0.1 -0.47 0.9
 # Trans_init is T_source2target i.e. the representation of source coordinates in target coordinates
 # In other words, the coordinate system {target} can be translated and rotated to obtain the coordinate system {source}
