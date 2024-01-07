@@ -50,3 +50,10 @@ We use the aruco board and opencv for getting the pose of the aruco board and we
     ```shell
     python calibr_test_eyeinhand.py
     ```
+
+### Note
+When you modify the size of aruco, you need to change the second parameter in calibr_test_eyetohand.py and calibr_test_eyeinhand.py
+
+    ```
+    rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, 0.08, K, dist)
+    ```
