@@ -186,8 +186,8 @@ trans_init = np.asarray([[1, 0, 0, 0.38],
                          [0, -1, 0, -0.65],
                          [0, 0, -1, 0.95],
                          [0.0, 0.0, 0.0, 1.0]]) # need to change 0.1 -0.47 0.9
-# Trans_init is T_source2target i.e. the representation of source coordinates in target coordinates
-# In other words, the coordinate system {target} can be translated and rotated to obtain the coordinate system {source}
+# Trans_init is T_target2source i.e. the representation of target coordinates in source coordinates
+# In other words, the coordinate system {source} can be translated and rotated to obtain the coordinate system {Target}
 draw_registration_result(pcd_rot, pcd_cam, trans_init) 
 
 evaluation = o3d.pipelines.registration.evaluate_registration(pcd_rot, pcd_cam, threshold, trans_init)

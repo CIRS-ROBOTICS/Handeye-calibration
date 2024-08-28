@@ -32,7 +32,7 @@ def rotationVectorToEulerAngles(rvec):
     rz = np.rad2deg(z)
     return rx, ry, rz
 def get_gripper2base():
-    robot_ip = '192.168.1.109'
+    robot_ip = '10.5.14.112'
     rtde_r = rtde_receive.RTDEReceiveInterface(robot_ip) # get the robot information
 
     pose = rtde_r.getActualTCPPose()
@@ -70,7 +70,7 @@ if len(corners) <= 0:
 K = cam.get_camera_params()['cam_intri'] # camera intrisic
 dist = cam.get_camera_params()['dist_coeff']
 # estimate the pose of marker
-rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, 0.08, K, dist)
+rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, 0.06, K, dist)
 cv2.aruco.drawDetectedMarkers(rgb, corners, ids)
 cv2.drawFrameAxes(rgb, K, dist, rvec, tvec, 0.03)
 cv2.imshow("marker",rgb)
@@ -135,8 +135,8 @@ print("\t\tThe pose of TCP:\n", T_tcp)
 
 # error correction and real robot test
 control_pose = np.zeros(6)
-control_pose[0] = T_tcp[0][3] + 0.002
-control_pose[1] = T_tcp[1][3] - 0.003
+control_pose[0] = T_tcp[0][3] + 0.00
+control_pose[1] = T_tcp[1][3] - 0.000
 control_pose[2] = T_tcp[2][3] - 0
 control_ori_mat = np.zeros((3,3))
 control_ori_mat = T_tcp[:3,:3]
@@ -147,7 +147,7 @@ print("\t\tThe rotation vector for TCP:\n", control_pose)
 control_pose[2] += 0.1
 path = np.append(control_pose ,np.array([0.2, 0.1, 0]))
 path = [path]
-rtde_c = rtde_control.RTDEControlInterface('192.168.1.109') # control the robot
+rtde_c = rtde_control.RTDEControlInterface('10.5.14.112') # control the robot
 print(rtde_c.moveL(path))
 path[0][2] -= 0.1
 print(rtde_c.moveL(path))

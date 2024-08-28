@@ -37,12 +37,14 @@ def get_gripper2base(rtde_r):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--robot_ip', type=str, default='192.168.1.109', help='Robot ip address')
+    parser.add_argument('--robot_ip', type=str, default='10.5.14.112', help='Robot ip address')
     parser.add_argument('--calib_grid_step', type=float, default=0.05, help='Calibration grid step')
-    parser.add_argument('--workspace', type=float, nargs=6, default=[-0.13, -0.03, -0.4, -0.3, 0.05, 0.20], 
+    parser.add_argument('--workspace', type=float, nargs=6, default=[0.12, 0.3, -0.4, -0.27, 0.25, 0.40],  # default=[-0.13, -0.03, -0.4, -0.3, 0.05, 0.20]
+                        # UR5 right [-0.3, -0.15, -0.4, -0.3, 0.25, 0.40]
                         help='Workspace range, [xmin, xmax, ymin, ymax, zmin, zmax]')
     parser.add_argument('--home_joint_position', type=float, nargs=6, 
-                        default=[-88.89, -91.64, -105.43, -77.63, 88.43, 360],
+                        default=[100.57, -115.50, 118.41, -92.90, -89.84, 10.62], #UR3 [-88.89, -91.64, -105.43, -77.63, 88.43, 360]
+                        # UR5 right [38.23, -118.65, 103.14, -71.02, -90.21, 255.08]
                         help='Robot arm joint angles at home pose, in degrees')
     parser.add_argument('--tool_orientation', type=float, nargs=3, default=[[0.832,2.518,0.156],[1.125,2.524,-0.072]],
                         help='Tool orientation w.r.t. robot base link, rotation vector in radians [rx, ry,rz]')
@@ -205,12 +207,20 @@ pcd_rot.points = o3d.utility.Vector3dVector(points_gripper)
 pcd_rot.paint_uniform_color([0, 0, 1.0])
 
 threshold = 0.02
-trans_init = np.asarray([[1, 0, 0, 0.02],
-                         [0, 1, 0, 0.08],
-                         [0, 0, 1, 0.09],
+# trans_init = np.asarray([[1, 0, 0, 0.02],
+#                          [0, 1, 0, 0.08],
+#                          [0, 0, 1, 0.09],
+#                          [0.0, 0.0, 0.0, 1.0]]) # need to change
+# trans_init = np.asarray([[0, 1, 0, 0.04],
+#                          [-1, 0, 0, 0.08],
+#                          [0, 0, 1, 0.09],
+#                          [0.0, 0.0, 0.0, 1.0]]) # need to change
+trans_init = np.asarray([[1, 0, 0, 0.04],
+                         [0, 1, 0, 0.09],
+                         [0, 0, 1, 0.10],
                          [0.0, 0.0, 0.0, 1.0]]) # need to change
-# Trans_init is T_source2target i.e. the representation of source coordinates in target coordinates
-# In other words, the coordinate system {target} can be translated and rotated to obtain the coordinate system {source}
+# Trans_init is T_target2source i.e. the representation of target coordinates in source coordinates
+# In other words, the coordinate system {source} can be translated and rotated to obtain the coordinate system {Target}
 draw_registration_result(pcd_rot, pcd_cam, trans_init) 
 
 evaluation = o3d.pipelines.registration.evaluate_registration(pcd_rot, pcd_cam, threshold, trans_init)
