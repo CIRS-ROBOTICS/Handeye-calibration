@@ -9,42 +9,14 @@ import argparse
 from scipy.spatial.transform import Rotation as R 
 
 
-def get_checkboard_position(rtde_r, gripper):
-    gripper.move_and_wait_for_pos(255, 255, 255) # close gripper
-    
-    print('Please drag the robot arm to the checkboard center position')
-    print('Press any key to confirm the position')
-    press_any_key()
-
-    tool_offest = 0.013 # The deviation from the actual state on the z axis after the gripper is closed
-
-    cur_state = rtde_r.getActualTCPPose()
-    checkboard_center = cur_state[:3]
-    checkboard_center[2] -= tool_offest # Correction of z-axis deviation
-
-    print('Checkboard position: [%f, %f, %f]' % tuple(checkboard_center))
-    return checkboard_center
-
-def get_gripper2base(rtde_r):
-    pose = rtde_r.getActualTCPPose()
-    mat = R.from_rotvec(pose[3:]).as_matrix() # rotation matrix of gripper to base 3*3
-    trans = pose[:3]
-    # trans = np.expand_dims(trans,axis=0)
-    # T_g2b = np.concatenate((mat, trans.T),axis=1)
-    # T_g2b = np.concatenate((T_g2b, np.array([[0,0,0,1]])),axis=0)
-
-    return trans, mat
-
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--robot_ip', type=str, default='10.5.14.112', help='Robot ip address')
+    parser.add_argument('--robot_ip', type=str, default='10.5.12.239', help='Robot ip address')
     parser.add_argument('--calib_grid_step', type=float, default=0.05, help='Calibration grid step')
-    parser.add_argument('--workspace', type=float, nargs=6, default=[0.12, 0.3, -0.4, -0.27, 0.25, 0.40],  # default=[-0.13, -0.03, -0.4, -0.3, 0.05, 0.20]
-                        # UR5 right [-0.3, -0.15, -0.4, -0.3, 0.25, 0.40]
+    parser.add_argument('--workspace', type=float, nargs=6, default=[-0.13, -0.03, -0.4, -0.3, 0.05, 0.20], 
                         help='Workspace range, [xmin, xmax, ymin, ymax, zmin, zmax]')
     parser.add_argument('--home_joint_position', type=float, nargs=6, 
-                        default=[100.57, -115.50, 118.41, -92.90, -89.84, 10.62], #UR3 [-88.89, -91.64, -105.43, -77.63, 88.43, 360]
-                        # UR5 right [38.23, -118.65, 103.14, -71.02, -90.21, 255.08]
+                        default=[-99.38, -110.61, -98.05, -60.31, -270.03, 360+80.91],
                         help='Robot arm joint angles at home pose, in degrees')
     parser.add_argument('--tool_orientation', type=float, nargs=3, default=[[0.832,2.518,0.156],[1.125,2.524,-0.072]],
                         help='Tool orientation w.r.t. robot base link, rotation vector in radians [rx, ry,rz]')
@@ -206,28 +178,26 @@ pcd_rot = o3d.geometry.PointCloud()
 pcd_rot.points = o3d.utility.Vector3dVector(points_gripper)
 pcd_rot.paint_uniform_color([0, 0, 1.0])
 
-threshold = 0.02
-# trans_init = np.asarray([[1, 0, 0, 0.02],
-#                          [0, 1, 0, 0.08],
-#                          [0, 0, 1, 0.09],
-#                          [0.0, 0.0, 0.0, 1.0]]) # need to change
-# trans_init = np.asarray([[0, 1, 0, 0.04],
-#                          [-1, 0, 0, 0.08],
-#                          [0, 0, 1, 0.09],
-#                          [0.0, 0.0, 0.0, 1.0]]) # need to change
-trans_init = np.asarray([[1, 0, 0, 0.04],
-                         [0, 1, 0, 0.09],
-                         [0, 0, 1, 0.10],
-                         [0.0, 0.0, 0.0, 1.0]]) # need to change
+threshold = 0.01
+trans_init = np.loadtxt("./result/eye_in_hand/real_param/init_g2cam.txt")
 # Trans_init is T_target2source i.e. the representation of target coordinates in source coordinates
-# In other words, the coordinate system {source} can be translated and rotated to obtain the coordinate system {Target}
+# In other words, the coordinate system {source} can be translated and rotated to obtain the coordinate system {target}
 draw_registration_result(pcd_rot, pcd_cam, trans_init) 
 
 evaluation = o3d.pipelines.registration.evaluate_registration(pcd_rot, pcd_cam, threshold, trans_init)
 print("\t\tBefore calibration:\n", evaluation)
 
+# global ICP
+voxel_size = 0.05
+pcd_rot2 = copy.deepcopy(pcd_rot)
+pcd_rot2.transform(trans_init)
+source_down, source_fpfh = preprocess_point_cloud(pcd_rot2, voxel_size)
+target_down, target_fpfh = preprocess_point_cloud(pcd_cam, voxel_size)
+global_result = execute_fast_global_registration(source_down, target_down, source_fpfh, target_fpfh, voxel_size)
+draw_registration_result(pcd_rot2, pcd_cam, global_result.transformation) 
+
 # calibrate
-trans = point_to_point_icp(pcd_rot, pcd_cam, threshold, trans_init)
+trans = point_to_point_icp(pcd_rot, pcd_cam, threshold, global_result.transformation @ trans_init)
 
 # visualization of calibration results
 draw_registration_result(pcd_cam, pcd_rot, trans)

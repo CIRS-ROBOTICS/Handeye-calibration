@@ -12,17 +12,14 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--robot_ip', type=str, default='10.5.13.66', help='Robot ip address')
     parser.add_argument('--calib_grid_step', type=float, default=0.05, help='Calibration grid step')
-    parser.add_argument('--workspace', type=float, nargs=6, default=[-0.3, -0.14, -0.68, -0.6, 0.245, 0.48], 
+    parser.add_argument('--workspace', type=float, nargs=6, default=[-0.37, -0.11, -0.7, -0.55, 0.4, 0.6], 
                         help='Workspace range, [xmin, xmax, ymin, ymax, zmin, zmax]')
     parser.add_argument('--home_joint_position', type=float, nargs=6, 
-                        default=[47.46, -117.32, 98.57, 289.03, -84.55, 256.31],
+                        default=[45.29, -88.62, 109.17, -198.91, -62.49, 270.17],
                         help='Robot arm joint angles at home pose, in degrees')
     parser.add_argument('--use_recorded_data', action='store_true', default=False, help='Use data collected before')
     parser.add_argument('--camera', type=str, default='default', choices=['L515', 'SR300', 'default'], help='Camera model')
     parser.add_argument('--checkboard_size', type=int, default=5, help='Calibration size')
-    parser.add_argument('--checkerboard_offset_from_tool', type=float, nargs=3,
-                        default=[0, 0, 0.011],
-                        help='Offset from the center of the gripper to the center of the checkerboard')
     args = parser.parse_args()
     args.workspace = np.array(args.workspace).reshape(3, 2)
     args.home_joint_position = [np.deg2rad(x) for x in args.home_joint_position]
@@ -59,7 +56,7 @@ if __name__ == '__main__':
         rtde_c.moveJ(home_joint_config, vel, acc)
 
         # Make robot gripper point upwards ***
-        joint_radian = [47.44, -101.72, 117.97, 169.90, -79.95, 261.45]
+        joint_radian = [45.29, -88.62, 109.17, -198.91, -62.49, 270.17]
         joint_radian = tuple([np.deg2rad(x) for x in joint_radian])
         rtde_c.moveJ(joint_radian, vel, acc)
 
@@ -125,7 +122,6 @@ if __name__ == '__main__':
                     
                     cur_state = rtde_r.getActualTCPPose()
                     tool_position = np.array(cur_state[:3]).reshape(1,3)
-                    tool_position = tool_position + args.checkerboard_offset_from_tool
 
                     measured_pts.append(tool_position)  # The position of the calibration board in the base coordinate system
                     observed_pix.append(checkerboard_pix)   # center pixel position of the calibration board
@@ -181,20 +177,26 @@ pcd_rot = o3d.geometry.PointCloud()
 pcd_rot.points = o3d.utility.Vector3dVector(points_base)
 pcd_rot.paint_uniform_color([0, 0, 1.0])
 
-threshold = 0.02
-trans_init = np.asarray([[1, 0, 0, 0.38],
-                         [0, -1, 0, -0.65],
-                         [0, 0, -1, 0.95],
-                         [0.0, 0.0, 0.0, 1.0]]) # need to change 0.1 -0.47 0.9
+threshold = 0.01
+trans_init = np.loadtxt("./result/eye_to_hand/real_param/init_base2cam.txt")
 # Trans_init is T_target2source i.e. the representation of target coordinates in source coordinates
-# In other words, the coordinate system {source} can be translated and rotated to obtain the coordinate system {Target}
-draw_registration_result(pcd_rot, pcd_cam, trans_init) 
+# In other words, the coordinate system {source} can be translated and rotated to obtain the coordinate system {target}
+draw_registration_result(pcd_rot, pcd_cam, trans_init) # source pds transforms to target pds.
 
 evaluation = o3d.pipelines.registration.evaluate_registration(pcd_rot, pcd_cam, threshold, trans_init)
 print("\t\tBefore calibration:\n", evaluation)
 
+# global ICP
+voxel_size = 0.05
+pcd_rot2 = copy.deepcopy(pcd_rot)
+pcd_rot2.transform(trans_init)
+source_down, source_fpfh = preprocess_point_cloud(pcd_rot2, voxel_size)
+target_down, target_fpfh = preprocess_point_cloud(pcd_cam, voxel_size)
+global_result = execute_fast_global_registration(source_down, target_down, source_fpfh, target_fpfh, voxel_size)
+draw_registration_result(pcd_rot2, pcd_cam, global_result.transformation) 
+
 # calibrate
-trans = point_to_point_icp(pcd_rot, pcd_cam, threshold, trans_init)
+trans = point_to_point_icp(pcd_rot, pcd_cam, threshold, global_result.transformation @ trans_init)
 
 # visualization of calibration results
 draw_registration_result(pcd_cam, pcd_rot, trans)
