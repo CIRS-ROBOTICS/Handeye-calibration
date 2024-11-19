@@ -48,7 +48,7 @@ class RealSense(Camera):
             # depth_sensor.set_option(rs.option.depth_units, 0.000125)
             pass
         else:
-            depth_sensor.set_option(rs.option.depth_units, 0.0001)
+            depth_sensor.set_option(rs.option.depth_units, 0.0001) # Changing the depth units to 100μm (0.0001m) allows for the max  measured range ~6.4m
 
         self.depth_scale = depth_sensor.get_depth_scale()
         frames = self.pipeline.wait_for_frames()
