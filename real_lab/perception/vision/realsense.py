@@ -112,7 +112,7 @@ class RealSense(Camera):
         depth_frame = self._post_process(depth_frame)
 
         # Convert images to numpy arrays
-        depth_image = np.asanyarray(depth_frame.get_data()) * self.depth_scale
+        depth_image = np.asanyarray(depth_frame.get_data()) * self.depth_scale # convert depth value units to meter
         color_image = np.asanyarray(color_frame.get_data())
 
         return color_image, depth_image
