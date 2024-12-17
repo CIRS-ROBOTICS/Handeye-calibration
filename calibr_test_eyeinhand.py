@@ -144,10 +144,10 @@ control_ori_vec, _ = cv2.Rodrigues(control_ori_mat)
 control_pose[3:] = control_ori_vec.squeeze()
 print("\t\tThe rotation vector for TCP:\n", control_pose)
 
-control_pose[2] += 0.1
+control_pose[2] += 0.12
 path = np.append(control_pose ,np.array([0.2, 0.1, 0]))
 path = [path]
 rtde_c = rtde_control.RTDEControlInterface('10.5.14.112') # control the robot
-print(rtde_c.moveL(path))
+rtde_c.moveL(path)
 path[0][2] -= 0.1
-print(rtde_c.moveL(path))
+rtde_c.moveL(path)
