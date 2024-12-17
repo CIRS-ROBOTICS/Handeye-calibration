@@ -102,18 +102,30 @@ def draw_registration_result(source, target, transformation):
         [source_temp,
          target_temp])
     
-def get_checkboard_position(rtde_r, gripper):
+def get_checkboard_position(rtde_c, rtde_r, gripper, tool_offset):
     gripper.move_and_wait_for_pos(255, 255, 255) # close gripper
     
     print('Please drag the robot arm to the checkboard center position')
     print('Press any key to confirm the position')
     press_any_key()
 
-    tool_offest = 0.0135 # NOTE: The deviation from the actual state on the z axis after the gripper is closed
+    # Due to using dashboard to mobile robot arms, full control needs to be regained
+    rtde_c.disconnect()
+    rtde_r.disconnect()
+    rtde_c.reconnect()
+    rtde_r.reconnect()
+
+    rtde_c.setTcp(tool_offset)
+    # tool_offest = 0.0135 # NOTE: The deviation from the actual state on the z axis after the gripper is closed
+    # """
+    # test
+    # """
+    # print("first set")
+    # print(rtde_c.getTCPOffset())
 
     cur_state = rtde_r.getActualTCPPose()
     checkboard_center = cur_state[:3]
-    checkboard_center[2] -= tool_offest # Correction of z-axis deviation
+    # checkboard_center[2] -= tool_offest # Correction of z-axis deviation
 
     print('Checkboard position: [%f, %f, %f]' % tuple(checkboard_center))
     return checkboard_center
