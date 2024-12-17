@@ -48,7 +48,7 @@ class RealSense(Camera):
             # depth_sensor.set_option(rs.option.depth_units, 0.000125)
             pass
         else:
-            depth_sensor.set_option(rs.option.depth_units, 0.0001)
+            depth_sensor.set_option(rs.option.depth_units, 0.0001) # Changing the depth units to 100μm (0.0001m) allows for the max  measured range ~6.4m
 
         self.depth_scale = depth_sensor.get_depth_scale()
         frames = self.pipeline.wait_for_frames()
@@ -112,7 +112,7 @@ class RealSense(Camera):
         depth_frame = self._post_process(depth_frame)
 
         # Convert images to numpy arrays
-        depth_image = np.asanyarray(depth_frame.get_data()) * self.depth_scale
+        depth_image = np.asanyarray(depth_frame.get_data()) * self.depth_scale # convert depth value units to meter
         color_image = np.asanyarray(color_frame.get_data())
 
         return color_image, depth_image
