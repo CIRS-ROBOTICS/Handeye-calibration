@@ -13,6 +13,8 @@ This implementation requires the following dependencies (tested on Ubuntu 16.04 
 
 * If you need to use realsense camera, you can download from the official library([RealSense](https://github.com/IntelRealSense/librealsense)).
 
+* The UR robot control package version is recommended to use 1.4.4,1.4.7, 1.4.8, 1.4.9.
+
 ## Calibrating Camera Extrinsics
 We provide a simple calibration script by using the checkerboard to estimate camera extrinsics with respect to robot base coordinates and gripper coordinates.
 
