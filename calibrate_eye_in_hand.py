@@ -11,18 +11,20 @@ from scipy.spatial.transform import Rotation as R
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--robot_ip', type=str, default='10.5.12.239', help='Robot ip address')
+    parser.add_argument('--robot_ip', type=str, default='10.5.14.112', help='Robot ip address')
     parser.add_argument('--calib_grid_step', type=float, default=0.05, help='Calibration grid step')
-    parser.add_argument('--workspace', type=float, nargs=6, default=[-0.13, -0.03, -0.4, -0.3, 0.05, 0.20], 
+    parser.add_argument('--workspace', type=float, nargs=6, default=[0.252, 0.5, -0.41, -0.3, 0.2, 0.45], 
                         help='Workspace range, [xmin, xmax, ymin, ymax, zmin, zmax]')
     parser.add_argument('--home_joint_position', type=float, nargs=6, 
-                        default=[-99.38, -110.61, -98.05, -60.31, -270.03, 360+80.91],
+                        default=[114.81, -116.09, 104.75, -105.18, -100.05, 22.51],
                         help='Robot arm joint angles at home pose, in degrees')
     parser.add_argument('--tool_orientation', type=float, nargs=3, default=[[0.832,2.518,0.156],[1.125,2.524,-0.072]],
                         help='Tool orientation w.r.t. robot base link, rotation vector in radians [rx, ry,rz]')
     parser.add_argument('--use_recorded_data', action='store_true', default=False, help='Use data collected before')
     parser.add_argument('--camera', type=str, default='default', choices=['L515', 'SR300', 'default'], help='Camera model')
     parser.add_argument('--checkboard_size', type=int, default=5, help='Calibration size')
+    parser.add_argument('--tool_offset', type=float, nargs=6, default=[0.0, 0.0, 0.2115, 0.0, 0.0, 0.0], help='tool offset when gripper closed')
+    parser.add_argument('--user_tool_offset', type=float, nargs=6, default=[0.0, 0.0, 0.18, 0.0, 0.0, 0.0], help='user set tool offset relative to wrist when gripper opened')
     args = parser.parse_args()
     args.workspace = np.array(args.workspace).reshape(3, 2)
     args.home_joint_position = [np.deg2rad(x) for x in args.home_joint_position]
@@ -57,8 +59,10 @@ if __name__ == '__main__':
         rtde_c.moveJ(home_joint_config, vel, acc)
 
         # Get checkboard center position
-        checkboard_center = get_checkboard_position(rtde_r, gripper)
+        checkboard_center = get_checkboard_position(rtde_c, rtde_r, gripper, args.tool_offset)
         checkboard_center = np.array(checkboard_center).reshape(1, 3)
+
+        rtde_c.setTcp(args.user_tool_offset) # set user tool offset of user tool coordinate system relative to the base coordinate system(robot base)
 
         cur_pos = rtde_r.getActualTCPPose()
         cur_pos[2] += 0.1 # Rising 10cm along the z-axis
