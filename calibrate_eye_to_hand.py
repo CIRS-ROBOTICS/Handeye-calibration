@@ -20,6 +20,7 @@ def parse_args():
     parser.add_argument('--use_recorded_data', action='store_true', default=False, help='Use data collected before')
     parser.add_argument('--camera', type=str, default='default', choices=['L515', 'SR300', 'default'], help='Camera model')
     parser.add_argument('--checkboard_size', type=int, default=5, help='Calibration size')
+    parser.add_argument('--user_tool_offset', type=float, nargs=6, default=[0.0, 0.0, 0.18, 0.0, 0.0, 0.0], help='user set tool offset relative to wrist when gripper opened')
     args = parser.parse_args()
     args.workspace = np.array(args.workspace).reshape(3, 2)
     args.home_joint_position = [np.deg2rad(x) for x in args.home_joint_position]
@@ -64,6 +65,8 @@ if __name__ == '__main__':
         print('Press any key to make sure the calibration board is installed successfully')
         press_any_key()
         gripper.move_and_wait_for_pos(255, 255, 255)
+
+        rtde_c.setTcp(args.user_tool_offset) # set user tool offset of user tool coordinate system relative to the base coordinate system(robot base)
 
         tool_orientation = rtde_r.getActualTCPPose()[3:6]
 
