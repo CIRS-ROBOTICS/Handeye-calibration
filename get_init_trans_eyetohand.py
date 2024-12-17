@@ -10,9 +10,19 @@ from scipy.spatial.transform import Rotation as R
 import time
 from utils import *
 
+'''
+User setting params
+'''
+marker_id = 25
+maker_size = 0.06
+robot_ip = "10.5.14.112"
+tool_offset = [0.0, 0.0, 0.2115, 0.0, 0.0, 0.0] # tool offset when gripper closed
+# user_tool_offset = [0.0, 0.0, 0.18, 0.0, 0.0, 0.0] # user set tool offset when gripper opened
+
+################################################################################################################
+
 aruco_dict = aruco.Dictionary_get(aruco.DICT_ARUCO_ORIGINAL) # generate the aruco dict
 # The website of generating aruco marker is https://chev.me/arucogen/
-marker_id = 25
 arucoParams = aruco.DetectorParameters_create()
 
 # marker_img = aruco.drawMarker(aruco_dict, marker_id, 500)
@@ -37,7 +47,6 @@ K = cam.get_camera_params()['cam_intri'] # camera intrisic
 dist = cam.get_camera_params()['dist_coeff']
 # estimate the pose of marker
 
-maker_size = 0.06
 rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, maker_size, K, dist)
 cv2.aruco.drawDetectedMarkers(rgb, corners, ids)
 cv2.drawFrameAxes(rgb, K, dist, rvec, tvec, 0.03)
@@ -49,7 +58,6 @@ print("rvec, tvec",rvec, tvec)
 R_matrix= np.zeros((3, 3), dtype=np.float64)
 cv2.Rodrigues(rvec, R_matrix) # get the rotation matrix
 
-robot_ip = "10.5.12.239"
 # initialize the robot
 rtde_c = rtde_control.RTDEControlInterface(robot_ip) # control the robot
 rtde_r = rtde_receive.RTDEReceiveInterface(robot_ip) # get the robot information
@@ -59,7 +67,7 @@ gripper = robotiq_gripper.RobotiqGripper() # Creating gripper
 gripper.connect(robot_ip, 63352)    # Connecting to gripper
 # gripper.activate()                         
 
-checkboard_center = get_checkboard_position(rtde_r, gripper)
+checkboard_center = get_checkboard_position(rtde_c, rtde_r, gripper, tool_offset)
 checkboard_center = np.array(checkboard_center).reshape(3, 1) # translation of aruco2base 
 
 base2cam_trans = np.dot(R_matrix, -checkboard_center) + tvec.reshape(3,1) # base2cam_trans; -checkboard_center: translation of base2aruco
