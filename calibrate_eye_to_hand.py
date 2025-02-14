@@ -64,7 +64,7 @@ if __name__ == '__main__':
         print('Please place the calibration board at the end of the robot arm')
         print('Press any key to make sure the calibration board is installed successfully')
         press_any_key()
-        gripper.move_and_wait_for_pos(255, 255, 255)
+        # gripper.move_and_wait_for_pos(255, 255, 255)
 
         rtde_c.setTcp(args.user_tool_offset) # set user tool offset of user tool coordinate system relative to the base coordinate system(robot base)
 
