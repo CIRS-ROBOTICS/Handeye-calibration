@@ -10,17 +10,17 @@ import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--robot_ip', type=str, default='10.5.13.66', help='Robot ip address')
+    parser.add_argument('--robot_ip', type=str, default='10.5.13.90', help='Robot ip address')
     parser.add_argument('--calib_grid_step', type=float, default=0.05, help='Calibration grid step')
-    parser.add_argument('--workspace', type=float, nargs=6, default=[-0.37, -0.11, -0.7, -0.55, 0.4, 0.6], 
+    parser.add_argument('--workspace', type=float, nargs=6, default=[-0.37, -0.11, -0.7, -0.55, 0.3, 0.5], 
                         help='Workspace range, [xmin, xmax, ymin, ymax, zmin, zmax]')
     parser.add_argument('--home_joint_position', type=float, nargs=6, 
-                        default=[45.29, -88.62, 109.17, -198.91, -62.49, 270.17],
+                        default=[67.79, -88.17, 115.9, -203.0, -69.28, 88.95],
                         help='Robot arm joint angles at home pose, in degrees')
     parser.add_argument('--use_recorded_data', action='store_true', default=False, help='Use data collected before')
     parser.add_argument('--camera', type=str, default='default', choices=['L515', 'SR300', 'default'], help='Camera model')
     parser.add_argument('--checkboard_size', type=int, default=5, help='Calibration size')
-    parser.add_argument('--user_tool_offset', type=float, nargs=6, default=[0.0, 0.0, 0.18, 0.0, 0.0, 0.0], help='user set tool offset relative to wrist when gripper opened')
+    parser.add_argument('--user_tool_offset', type=float, nargs=6, default=[0.0, 0.0, 0.198, 0.0, 0.0, 0.0], help='user set tool offset relative to wrist when gripper opened')
     args = parser.parse_args()
     args.workspace = np.array(args.workspace).reshape(3, 2)
     args.home_joint_position = [np.deg2rad(x) for x in args.home_joint_position]
@@ -57,7 +57,7 @@ if __name__ == '__main__':
         rtde_c.moveJ(home_joint_config, vel, acc)
 
         # Make robot gripper point upwards ***
-        joint_radian = [45.29, -88.62, 109.17, -198.91, -62.49, 270.17]
+        joint_radian = [67.79, -88.17, 115.9, -203.0, -69.28, 88.95]
         joint_radian = tuple([np.deg2rad(x) for x in joint_radian])
         rtde_c.moveJ(joint_radian, vel, acc)
 
